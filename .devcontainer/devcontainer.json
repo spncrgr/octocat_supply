@@ -59,7 +59,7 @@
   },
   "postCreateCommand": "make install && make build",
   // set the API port to public visibility
-  "postAttachCommand": "gh cs ports visibility 3000:public -c \"$CODESPACE_NAME\"",
+  "postAttachCommand": "gh cs ports visibility 3000:public 5137:public -c \"$CODESPACE_NAME\"",
   "shutdownAction": "stopCompose",
   "hostRequirements": {
     "cpus": 4,
