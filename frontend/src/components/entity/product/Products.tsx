@@ -3,18 +3,8 @@ import axios from 'axios';
 import { useQuery } from 'react-query';
 import { api } from '../../../api/config';
 import { useTheme } from '../../../context/ThemeContext';
-
-interface Product {
-  productId: number;
-  name: string;
-  description: string;
-  price: number;
-  imgName: string;
-  sku: string;
-  unit: string;
-  supplierId: number;
-  discount?: number;
-}
+import { useCart } from '../../../context/CartContext';
+import type { Product } from '../../../types/product';
 
 const fetchProducts = async (): Promise<Product[]> => {
   const { data } = await axios.get(`${api.baseURL}${api.endpoints.products}`);
@@ -28,6 +18,7 @@ export default function Products() {
   const [showModal, setShowModal] = useState(false);
   const { data: products, isLoading, error } = useQuery('products', fetchProducts);
   const { darkMode } = useTheme();
+  const { addItem } = useCart();
 
   const filteredProducts = products?.filter(
     (product) =>
@@ -49,11 +40,11 @@ export default function Products() {
     }));
   };
 
-  const handleAddToCart = (productId: number) => {
+  const handleAddToCart = (product: Product) => {
+    const productId = product.productId;
     const quantity = quantities[productId] || 0;
     if (quantity > 0) {
-      // TODO: Implement cart functionality
-      alert(`Added ${quantity} items to cart`);
+      addItem(product, quantity);
       setQuantities((prev) => ({
         ...prev,
         [productId]: 0,
@@ -236,7 +227,7 @@ export default function Products() {
                         </button>
                       </div>
                       <button
-                        onClick={() => handleAddToCart(product.productId)}
+                        onClick={() => handleAddToCart(product)}
                         className={`px-4 py-2 rounded-lg transition-colors ${quantities[product.productId]
                           ? 'bg-primary hover:bg-accent text-white'
                           : `${darkMode ? 'bg-gray-700 text-gray-400' : 'bg-gray-200 text-gray-500'} cursor-not-allowed`

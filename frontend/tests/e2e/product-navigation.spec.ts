@@ -73,4 +73,34 @@ test.describe('Product catalog discovery', () => {
     // And I am prompted to adjust the search filters
     await expect(emptyState).toContainText(/clearing.*changing.*search filters/i);
   });
+
+  test('Add and remove products in the cart', async ({ page }) => {
+    // Given I am viewing the product catalog
+    await page.goto('/products');
+    await expect(page.locator('h1:has-text("Products")')).toBeVisible();
+
+    // When I increase the quantity of a product and add it to the cart
+    const increaseQuantityButton = page.locator('[id^="increase-qty-"]').first();
+    await increaseQuantityButton.click();
+    await increaseQuantityButton.click();
+    const addToCartButton = page.locator('[id^="add-to-cart-"]').first();
+    await addToCartButton.click();
+
+    // Then the cart badge updates with the selected quantity
+    const cartIconLink = page.locator('a[aria-label^="Open cart with"]');
+    await expect(cartIconLink).toHaveAttribute('aria-label', /Open cart with 2 items/);
+
+    // When I open the cart page
+    await cartIconLink.click();
+    await expect(page).toHaveURL(/\/cart/);
+    await expect(page.locator('h2:has-text("Order Summary")')).toBeVisible();
+
+    // And I remove the item from the cart
+    await page.locator('button[aria-label^="Remove "]').first().click();
+
+    // Then I see the empty cart state
+    await expect(page.locator('h1:has-text("Your Cart")')).toBeVisible();
+    await expect(page.locator('text=Your cart is currently empty.')).toBeVisible();
+    await expect(cartIconLink).toHaveAttribute('aria-label', /Open cart with 0 items/);
+  });
 });

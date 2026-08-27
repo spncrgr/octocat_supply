@@ -21,3 +21,11 @@ Feature: Product catalog discovery
     When I search for "Space Tuna"
     Then I see the empty state message "No products found"
     And I am prompted to adjust the search filters
+
+  Scenario: Add and remove products in the cart
+    Given I am viewing the product catalog
+    When I increase the quantity of a product and add it to the cart
+    Then the cart badge updates with the selected quantity
+    When I open the cart page
+    And I remove the item from the cart
+    Then I see the empty cart state
