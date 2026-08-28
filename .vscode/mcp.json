@@ -16,7 +16,7 @@
       ]
     },
     "github": {
-      "command": "podman",
+      "command": "dokcer",
       "args": [
         "run",
         "-i",
