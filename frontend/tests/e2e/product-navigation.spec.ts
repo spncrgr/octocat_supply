@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 function extractCurrencyValue(value: string): number {
-  const normalized = value.replace(',', '');
+  const normalized = value.replace(/,/g, '');
   const match = normalized.match(/\$([0-9]+(?:\.[0-9]{1,2})?)/);
   if (!match) {
     throw new Error(`Unable to extract currency value from "${value}"`);
