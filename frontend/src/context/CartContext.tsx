@@ -1,9 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { calculateShipping } from '../constants/cartPricing';
 import type { Product } from '../types/product';
 
 const CART_STORAGE_KEY = 'octocat-supply-cart';
-const FREE_SHIPPING_THRESHOLD = 100;
-const SHIPPING_FEE = 25;
 
 export interface CartItem {
   product: Product;
@@ -140,8 +139,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       (total, item) => total + getUnitPrice(item.product) * item.quantity,
       0,
     );
-    const shipping =
-      subtotal === 0 ? 0 : subtotal > FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+    const shipping = calculateShipping(subtotal);
     const grandTotal = subtotal + shipping;
 
     return {

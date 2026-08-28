@@ -1,5 +1,8 @@
 import { test, expect } from '@playwright/test';
 
+const FREE_SHIPPING_THRESHOLD = 100;
+const SHIPPING_FEE = 25;
+
 function extractCurrencyValue(value: string): number {
   const normalized = value.replace(/,/g, '');
   const match = normalized.match(/\$([0-9]+(?:\.[0-9]{1,2})?)/);
@@ -129,9 +132,10 @@ test.describe('Product catalog discovery', () => {
       .innerText();
 
     const subtotal = extractCurrencyValue(subtotalValueText);
+    const subtotalInCents = Math.round((subtotal + Number.EPSILON) * 100);
     const shipping = extractCurrencyValue(shippingValueText);
     const grandTotal = extractCurrencyValue(grandTotalValueText);
-    const expectedShipping = subtotal === 0 ? 0 : subtotal > 100 ? 0 : 25;
+    const expectedShipping = subtotalInCents === 0 || subtotalInCents > FREE_SHIPPING_THRESHOLD * 100 ? 0 : SHIPPING_FEE;
     const expectedGrandTotal = subtotal + expectedShipping;
 
     expect(shipping).toBeCloseTo(expectedShipping, 2);

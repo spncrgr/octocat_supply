@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { SHIPPING_POLICY_LABEL } from '../../../constants/cartPricing';
 import { useCart } from '../../../context/CartContext';
 import { useTheme } from '../../../context/ThemeContext';
 
@@ -177,7 +178,7 @@ export default function Cart() {
               <span>{formatCurrency(subtotal)}</span>
             </div>
             <div className="flex justify-between text-lg">
-              <span>Shipping (Free over $100)</span>
+              <span>{SHIPPING_POLICY_LABEL}</span>
               <span>{formatCurrency(shipping)}</span>
             </div>
             <div className={`pt-4 mt-2 border-t ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
