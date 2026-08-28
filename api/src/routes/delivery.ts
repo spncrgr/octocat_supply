@@ -147,12 +147,54 @@
 
 import express from 'express';
 import { Delivery } from '../models/delivery';
-import { exec } from 'child_process';
+import { execFile } from 'child_process';
 import { getDeliveriesRepository } from '../repositories/deliveriesRepo';
 import { NotFoundError } from '../utils/errors';
 
 
 const router = express.Router();
+const notifyRequestCounts = new Map<string, { count: number; windowStartMs: number }>();
+const NOTIFY_WINDOW_MS = 60 * 1000;
+const NOTIFY_MAX_REQUESTS_PER_WINDOW = 10;
+
+function pruneExpiredNotifyWindows(now: number) {
+  for (const [ip, requestWindow] of notifyRequestCounts.entries()) {
+    if (now - requestWindow.windowStartMs >= NOTIFY_WINDOW_MS) {
+      notifyRequestCounts.delete(ip);
+    }
+  }
+}
+
+export function resetNotifyRateLimits() {
+  notifyRequestCounts.clear();
+}
+
+function notifyRateLimitMiddleware(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const { deliveryPartner } = req.body;
+  if (!deliveryPartner) {
+    next();
+    return;
+  }
+
+  const clientIp = req.ip || req.socket.remoteAddress || 'unknown';
+  const now = Date.now();
+  pruneExpiredNotifyWindows(now);
+  const requestWindow = notifyRequestCounts.get(clientIp);
+
+  if (!requestWindow) {
+    notifyRequestCounts.set(clientIp, { count: 1, windowStartMs: now });
+    next();
+    return;
+  }
+
+  requestWindow.count += 1;
+  if (requestWindow.count > NOTIFY_MAX_REQUESTS_PER_WINDOW) {
+    res.status(429).json({ error: 'Too many notify requests. Please try again later.' });
+    return;
+  }
+
+  next();
+}
 
 // Create a new delivery
 router.post('/', async (req, res, next) => {
@@ -192,7 +234,7 @@ router.get('/:id', async (req, res, next) => {
 });
 
 // Update the status of a delivery
-router.put('/:id/status', async (req, res, next) => {
+router.put('/:id/status', notifyRateLimitMiddleware, async (req, res, next) => {
   try {
     const { status, deliveryPartner } = req.body;
     const repo = await getDeliveriesRepository();
@@ -202,7 +244,7 @@ router.put('/:id/status', async (req, res, next) => {
       const updatedDelivery = await repo.updateStatus(parseInt(req.params.id), status);
 
       if (deliveryPartner) {
-        exec(`notify ${deliveryPartner}`, (error, stdout) => {
+        execFile('notify', [deliveryPartner], { encoding: 'utf8' }, (error, stdout) => {
           if (error) {
             console.error(`Error executing command: ${error}`);
             return res.status(500).json({ error: error.message });
