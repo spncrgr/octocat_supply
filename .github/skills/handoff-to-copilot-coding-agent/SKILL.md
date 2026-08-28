@@ -1,8 +1,8 @@
 ---
-description: 'Scans the current chat history, strips noise, writes a concise GitHub Issue for GitHub Copilot Coding Agent'
-tools: ['search', 'web/githubRepo', 'read', 'azure-mcp-server/search', 'github/*', 'github-remote/*']
+name: handoff-to-copilot-coding-agent
+description: Scans the current chat history, strips noise, writes a concise GitHub Issue for GitHub Copilot Coding Agent
+disable-model-invocation: true
 ---
-
 <!--
 INTERNAL THOUGHTS – not shown to the user.
 1. Parse the entire chat transcript supplied by VS Code.

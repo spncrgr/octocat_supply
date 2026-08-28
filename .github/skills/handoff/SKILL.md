@@ -1,8 +1,8 @@
 ---
-description: 'Scans the current chat history, strips noise, and writes a concise handoff.md for the next developer.'
-tools: ['search', 'web/githubRepo', 'read', 'azure-mcp-server/search', 'github/*', 'github-remote/*']
+name: handoff
+description: Scans the current chat history, strips noise, and writes a concise handoff.md for the next developer.
+disable-model-invocation: true
 ---
-
 <!--
 INTERNAL THOUGHTS – not shown to the user.
 1. Parse the entire chat transcript supplied by VS Code.

@@ -1,6 +1,7 @@
 ---
-description: 'Demo: Improve API Test Coverage - Add Unit Tests for Missing Routes.'
-tools: ['search', 'edit', 'web','vscode/openSimpleBrowser', 'read', 'execute', 'azure-mcp-server/search', 'playwright/*', 'github/*']
+name: demo-unit-test-coverage
+description: Demo: Improve API Test Coverage - Add Unit Tests for Missing Routes.
+disable-model-invocation: true
 ---
 # 🧪 Demo: Add Unit Tests for Product and Supplier Routes
 

@@ -1,8 +1,8 @@
 ---
-description: 'Check DRY'
-tools: ['search', 'web/fetch', 'web/githubRepo','read', 'execute', 'azure-mcp-server/search', 'playwright/*', 'github-remote/*']
+name: check-dry-violations
+description: Check DRY
+disable-model-invocation: true
 ---
-
 # 🔍 DRY Violation Analysis & Refactoring Recommendations
 
 ## 🎯 Objective

@@ -1,8 +1,8 @@
 ---
-description: 'Complete Demo: Add Cart Page and Icon with Vision and Agent Mode'
-tools: ['search', 'edit', 'web','vscode/openSimpleBrowser', 'read', 'execute', 'azure-mcp-server/search', 'playwright/*', 'github/*']
+name: demo-cart-page
+description: Complete Demo: Add Cart Page and Icon with Vision and Agent Mode
+disable-model-invocation: true
 ---
-
 # Demo: Cart Page and Icon Implementation
 
 ## Context

@@ -1,8 +1,8 @@
 ---
-description: 'Use Coding Agent to test multiple paths - in parallel!'
-tools: ['search', 'edit', 'web','vscode/openSimpleBrowser', 'read', 'execute', 'azure-mcp-server/search', 'playwright/*', 'github/*']
+name: demo-cca-parallel
+description: Use Coding Agent to test multiple paths - in parallel!
+disable-model-invocation: true
 ---
-
 # Demo: Use Coding Agent to test multiple paths - in parallel!
 
 ## Context

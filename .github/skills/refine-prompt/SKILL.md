@@ -1,8 +1,8 @@
 ---
-description: 'Refine your prompt to ensure that it is clear, complete, and unambiguous.'
-tools: ['search', 'execute', 'web', 'edit', 'azure-mcp-server/search']
+name: refine-prompt
+description: Refine your prompt to ensure that it is clear, complete, and unambiguous.
+disable-model-invocation: true
 ---
-
 # Prompt Refinement Assistant
 
 ## Role:

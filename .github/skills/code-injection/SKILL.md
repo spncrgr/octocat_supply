@@ -1,3 +1,8 @@
+---
+name: code-injection
+description: code-injection
+disable-model-invocation: true
+---
 # Code Injection Vulnerability Demo
 
 This prompt demonstrates how to introduce a Code injection vulnerability into the Delivery API for demonstration purposes. **WARNING: This creates an intentional security vulnerability that should NEVER be used in production code.**
