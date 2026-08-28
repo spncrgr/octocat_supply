@@ -1,5 +1,15 @@
 import { test, expect } from '@playwright/test';
 
+function extractCurrencyValue(value: string): number {
+  const normalized = value.replace(',', '');
+  const match = normalized.match(/\$([0-9]+(?:\.[0-9]{1,2})?)/);
+  if (!match) {
+    throw new Error(`Unable to extract currency value from "${value}"`);
+  }
+
+  return Number.parseFloat(match[1]);
+}
+
 /**
  * Product catalog discovery E2E tests
  * Implements: frontend/tests/features/product-navigation.feature
@@ -94,6 +104,38 @@ test.describe('Product catalog discovery', () => {
     await cartIconLink.click();
     await expect(page).toHaveURL(/\/cart/);
     await expect(page.locator('h2:has-text("Order Summary")')).toBeVisible();
+
+    // And shipping and total follow the cart pricing rule
+    const subtotalValueText = await page
+      .locator('div.flex.justify-between.text-lg')
+      .filter({ hasText: 'Subtotal' })
+      .first()
+      .locator('span')
+      .last()
+      .innerText();
+    const shippingValueText = await page
+      .locator('div.flex.justify-between.text-lg')
+      .filter({ hasText: 'Shipping' })
+      .first()
+      .locator('span')
+      .last()
+      .innerText();
+    const grandTotalValueText = await page
+      .locator('div.flex.justify-between.text-2xl')
+      .filter({ hasText: 'Grand Total' })
+      .first()
+      .locator('span')
+      .last()
+      .innerText();
+
+    const subtotal = extractCurrencyValue(subtotalValueText);
+    const shipping = extractCurrencyValue(shippingValueText);
+    const grandTotal = extractCurrencyValue(grandTotalValueText);
+    const expectedShipping = subtotal === 0 ? 0 : subtotal > 100 ? 0 : 25;
+    const expectedGrandTotal = subtotal + expectedShipping;
+
+    expect(shipping).toBeCloseTo(expectedShipping, 2);
+    expect(grandTotal).toBeCloseTo(expectedGrandTotal, 2);
 
     // And I remove the item from the cart
     await page.locator('button[aria-label^="Remove "]').first().click();

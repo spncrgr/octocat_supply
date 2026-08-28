@@ -27,5 +27,6 @@ Feature: Product catalog discovery
     When I increase the quantity of a product and add it to the cart
     Then the cart badge updates with the selected quantity
     When I open the cart page
+    And shipping follows the free-over-$100 rule
     And I remove the item from the cart
     Then I see the empty cart state

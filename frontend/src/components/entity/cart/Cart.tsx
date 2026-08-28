@@ -7,7 +7,7 @@ function formatCurrency(amount: number): string {
 }
 
 export default function Cart() {
-  const { items, subtotal, discountAmount, shipping, grandTotal, updateQuantity, removeItem, clearCart } =
+  const { items, subtotal, shipping, grandTotal, updateQuantity, removeItem, clearCart } =
     useCart();
   const { darkMode } = useTheme();
 
@@ -177,11 +177,7 @@ export default function Cart() {
               <span>{formatCurrency(subtotal)}</span>
             </div>
             <div className="flex justify-between text-lg">
-              <span>Discount(5%)</span>
-              <span>-{formatCurrency(discountAmount)}</span>
-            </div>
-            <div className="flex justify-between text-lg">
-              <span>Shipping</span>
+              <span>Shipping (Free over $100)</span>
               <span>{formatCurrency(shipping)}</span>
             </div>
             <div className={`pt-4 mt-2 border-t ${darkMode ? 'border-gray-800' : 'border-gray-200'}`}>
@@ -211,4 +207,3 @@ export default function Cart() {
     </div>
   );
 }
-

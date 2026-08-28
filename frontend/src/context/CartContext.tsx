@@ -2,8 +2,8 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, t
 import type { Product } from '../types/product';
 
 const CART_STORAGE_KEY = 'octocat-supply-cart';
-const DISCOUNT_RATE = 0.05;
-const SHIPPING_FEE = 10;
+const FREE_SHIPPING_THRESHOLD = 100;
+const SHIPPING_FEE = 25;
 
 export interface CartItem {
   product: Product;
@@ -14,7 +14,6 @@ interface CartContextValue {
   items: CartItem[];
   itemCount: number;
   subtotal: number;
-  discountAmount: number;
   shipping: number;
   grandTotal: number;
   addItem: (product: Product, quantity: number) => void;
@@ -141,15 +140,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
       (total, item) => total + getUnitPrice(item.product) * item.quantity,
       0,
     );
-    const discountAmount = subtotal * DISCOUNT_RATE;
-    const shipping = subtotal > 0 ? SHIPPING_FEE : 0;
-    const grandTotal = subtotal - discountAmount + shipping;
+    const shipping =
+      subtotal === 0 ? 0 : subtotal > FREE_SHIPPING_THRESHOLD ? 0 : SHIPPING_FEE;
+    const grandTotal = subtotal + shipping;
 
     return {
       items,
       itemCount,
       subtotal,
-      discountAmount,
       shipping,
       grandTotal,
       addItem,
