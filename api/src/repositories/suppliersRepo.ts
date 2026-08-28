@@ -50,11 +50,28 @@ export class SuppliersRepository {
   }
 
   /**
+   * Normalize boolean fields to SQLite-safe integers before writing to the database.
+   */
+  private normalizeSupplierValues<T extends Partial<Omit<Supplier, 'supplierId'>>>(supplier: T): T {
+    const normalized = { ...supplier };
+
+    if (normalized.active !== undefined) {
+      normalized.active = Number(Boolean(normalized.active)) as T['active'];
+    }
+    if (normalized.verified !== undefined) {
+      normalized.verified = Number(Boolean(normalized.verified)) as T['verified'];
+    }
+
+    return normalized;
+  }
+
+  /**
    * Create a new supplier
    */
   async create(supplier: Omit<Supplier, 'supplierId'>): Promise<Supplier> {
     try {
-      const { sql, values } = buildInsertSQL('suppliers', supplier);
+      const normalizedSupplier = this.normalizeSupplierValues(supplier);
+      const { sql, values } = buildInsertSQL('suppliers', normalizedSupplier);
       const result = await this.db.run(sql, values);
 
       const createdSupplier = await this.findById(result.lastID || 0);
@@ -73,7 +90,8 @@ export class SuppliersRepository {
    */
   async update(id: number, supplier: Partial<Omit<Supplier, 'supplierId'>>): Promise<Supplier> {
     try {
-      const { sql, values } = buildUpdateSQL('suppliers', supplier, 'supplier_id = ?');
+      const normalizedSupplier = this.normalizeSupplierValues(supplier);
+      const { sql, values } = buildUpdateSQL('suppliers', normalizedSupplier, 'supplier_id = ?');
       const result = await this.db.run(sql, [...values, id]);
 
       if (result.changes === 0) {
@@ -153,6 +171,7 @@ export async function getSuppliersRepository(
 ): Promise<SuppliersRepository> {
   const isTestEnv = isTest || process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
   if (isTestEnv) {
+    suppliersRepo = null;
     return createSuppliersRepository(true);
   }
   if (!suppliersRepo) {

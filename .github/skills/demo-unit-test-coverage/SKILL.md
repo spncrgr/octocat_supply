@@ -1,7 +1,7 @@
 ---
 name: demo-unit-test-coverage
 description: Demo: Improve API Test Coverage - Add Unit Tests for Missing Routes.
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 # 🧪 Demo: Add Unit Tests for Product and Supplier Routes
 
