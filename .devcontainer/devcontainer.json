@@ -25,9 +25,6 @@
     "ghcr.io/devcontainers/features/azure-cli:1": {},
     "ghcr.io/devcontainers/features/python:1": {},
     "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers/features/docker-in-docker:4": {
-      "moby": false
-    },
     "ghcr.io/devcontainers/features/node:2": {}
   },
   "customizations": {
