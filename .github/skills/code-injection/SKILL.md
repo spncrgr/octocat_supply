@@ -1,7 +1,6 @@
 ---
 name: code-injection
 description: code-injection
-disable-model-invocation: true
 ---
 # Code Injection Vulnerability Demo
 

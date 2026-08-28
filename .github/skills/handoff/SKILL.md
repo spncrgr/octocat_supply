@@ -1,7 +1,6 @@
 ---
 name: handoff
 description: Scans the current chat history, strips noise, and writes a concise handoff.md for the next developer.
-disable-model-invocation: true
 ---
 <!--
 INTERNAL THOUGHTS – not shown to the user.

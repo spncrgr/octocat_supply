@@ -1,7 +1,6 @@
 ---
 name: model-selection
 description: Help choose the best Copilot model for a task, or generate a model comparison table.
-disable-model-invocation: true
 ---
 # GitHub Copilot Model Guide
 

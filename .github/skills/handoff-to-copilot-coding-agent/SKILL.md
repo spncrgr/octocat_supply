@@ -1,7 +1,6 @@
 ---
 name: handoff-to-copilot-coding-agent
 description: Scans the current chat history, strips noise, writes a concise GitHub Issue for GitHub Copilot Coding Agent
-disable-model-invocation: true
 ---
 <!--
 INTERNAL THOUGHTS – not shown to the user.

@@ -1,7 +1,6 @@
 ---
 name: demo-cca-parallel
 description: Use Coding Agent to test multiple paths - in parallel!
-disable-model-invocation: true
 ---
 # Demo: Use Coding Agent to test multiple paths - in parallel!
 
