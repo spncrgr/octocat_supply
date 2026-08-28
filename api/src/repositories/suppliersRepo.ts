@@ -56,10 +56,10 @@ export class SuppliersRepository {
     const normalized = { ...supplier };
 
     if (normalized.active !== undefined) {
-      normalized.active = Number(Boolean(normalized.active)) as T['active'];
+      normalized.active = Number(Boolean(normalized.active)) as unknown as T['active'];
     }
     if (normalized.verified !== undefined) {
-      normalized.verified = Number(Boolean(normalized.verified)) as T['verified'];
+      normalized.verified = Number(Boolean(normalized.verified)) as unknown as T['verified'];
     }
 
     return normalized;
