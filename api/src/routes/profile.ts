@@ -99,7 +99,22 @@ import { NotFoundError, ValidationError } from '../utils/errors';
 const router = express.Router();
 
 function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+  if (value.includes(' ') || value.startsWith('@') || value.endsWith('@')) {
+    return false;
+  }
+
+  const atIndex = value.indexOf('@');
+  if (atIndex <= 0 || atIndex !== value.lastIndexOf('@')) {
+    return false;
+  }
+
+  const domain = value.slice(atIndex + 1);
+  const dotIndex = domain.indexOf('.');
+  if (dotIndex <= 0 || dotIndex === domain.length - 1) {
+    return false;
+  }
+
+  return true;
 }
 
 function parseProfileId(idParam: string): number {
