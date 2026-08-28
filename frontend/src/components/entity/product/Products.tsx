@@ -5,6 +5,7 @@ import { api } from '../../../api/config';
 import { useTheme } from '../../../context/ThemeContext';
 import { useCart } from '../../../context/CartContext';
 import type { Product } from '../../../types/product';
+import { getApiErrorMessage } from '../../../utils/networkError';
 
 const fetchProducts = async (): Promise<Product[]> => {
   const { data } = await axios.get(`${api.baseURL}${api.endpoints.products}`);
@@ -19,6 +20,7 @@ export default function Products() {
   const { data: products, isLoading, error } = useQuery('products', fetchProducts);
   const { darkMode } = useTheme();
   const { addItem } = useCart();
+  const fetchErrorMessage = getApiErrorMessage(error, 'Failed to fetch products');
 
   const filteredProducts = products?.filter(
     (product) =>
@@ -77,7 +79,9 @@ export default function Products() {
         className={`min-h-screen ${darkMode ? 'bg-dark' : 'bg-gray-100'} pt-20 px-4 transition-colors duration-300`}
       >
         <div className="max-w-7xl mx-auto">
-          <div className="text-red-500 text-center">Failed to fetch products</div>
+          <div className="text-red-500 text-center" role="alert">
+            {fetchErrorMessage}
+          </div>
         </div>
       </div>
     );

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import axios from 'axios';
 import { api } from '../../../api/config';
 import { useTheme } from '../../../context/ThemeContext';
+import { getApiErrorMessage } from '../../../utils/networkError';
 
 interface Supplier {
   supplierId: number;
@@ -29,6 +30,7 @@ interface ProductFormProps {
 
 export default function ProductForm({ product, suppliers, onClose, onSave }: ProductFormProps) {
   const { darkMode } = useTheme();
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Partial<Product>>(
     product || {
@@ -44,6 +46,8 @@ export default function ProductForm({ product, suppliers, onClose, onSave }: Pro
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSaveError(null);
+
     try {
       if (product) {
         await axios.put(`${api.baseURL}${api.endpoints.products}/${product.productId}`, formData);
@@ -57,6 +61,8 @@ export default function ProductForm({ product, suppliers, onClose, onSave }: Pro
         onClose();
       }
     } catch (error) {
+      const message = getApiErrorMessage(error, 'Unable to save this product.');
+      setSaveError(message);
       console.error('Error saving product:', error);
     }
   };
@@ -72,6 +78,11 @@ export default function ProductForm({ product, suppliers, onClose, onSave }: Pro
           {product ? 'Edit Product' : 'Add New Product'}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {saveError && (
+            <div className="rounded border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700" role="alert">
+              {saveError}
+            </div>
+          )}
           <div>
             <label
               className={`block ${darkMode ? 'text-light' : 'text-gray-700'} mb-1 transition-colors duration-300`}

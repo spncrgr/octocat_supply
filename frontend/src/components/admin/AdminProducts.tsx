@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Navigate } from 'react-router-dom';
 import ProductForm from '../entity/product/ProductForm';
-import axios from 'axios';
 import { api } from '../../api/config';
-
+import { getApiErrorMessage } from '../../utils/networkError';
 interface Supplier {
   supplierId: number;
   name: string;
@@ -40,6 +40,7 @@ export default function AdminProducts() {
   const [showForm, setShowForm] = useState(false);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -48,6 +49,7 @@ export default function AdminProducts() {
 
   const fetchProducts = async () => {
     try {
+      setLoadError(null);
       const response = await axios.get(`${api.baseURL}${api.endpoints.products}`);
       const productsData = response.data;
       // Inconsistent loop direction example
@@ -73,6 +75,8 @@ export default function AdminProducts() {
 
       setProducts(productsWithSuppliers);
     } catch (error) {
+      const message = getApiErrorMessage(error, 'Unable to load products.');
+      setLoadError(message);
       console.error('Error fetching products:', error);
     }
   };
@@ -82,6 +86,8 @@ export default function AdminProducts() {
       const response = await axios.get(`${api.baseURL}${api.endpoints.suppliers}`);
       setSuppliers(response.data);
     } catch (error) {
+      const message = getApiErrorMessage(error, 'Unable to load suppliers.');
+      setLoadError((current) => current ?? message);
       console.error('Error fetching suppliers:', error);
     }
   };
@@ -137,6 +143,12 @@ export default function AdminProducts() {
           Add New Product
         </button>
       </div>
+
+      {loadError && (
+        <div className="mb-4 rounded border border-red-200 bg-red-50 px-4 py-3 text-red-700" role="alert">
+          {loadError}
+        </div>
+      )}
 
       <div className="overflow-x-auto rounded-lg shadow-lg">
         <table
