@@ -91,4 +91,57 @@ describe('Profile API', () => {
 
     expect(response.status).toBe(404);
   });
+
+  it('should return 404 when updating non-existing profile', async () => {
+    const response = await request(app).put('/profiles/999').send({ displayName: 'Missing' });
+
+    expect(response.status).toBe(404);
+  });
+
+  it('should return 404 when deleting non-existing profile', async () => {
+    const response = await request(app).delete('/profiles/999');
+
+    expect(response.status).toBe(404);
+  });
+
+  it('should return 400 when creating profile with missing required fields', async () => {
+    const response = await request(app).post('/profiles').send({ bio: 'Missing required values' });
+
+    expect(response.status).toBe(400);
+  });
+
+  it('should return 400 when creating profile with invalid email', async () => {
+    const response = await request(app).post('/profiles').send({
+      displayName: 'Invalid Email',
+      email: 'invalid-email',
+    });
+
+    expect(response.status).toBe(400);
+  });
+
+  it('should return 400 when updating profile with unsupported fields only', async () => {
+    const createResponse = await request(app).post('/profiles').send({
+      displayName: 'Validation User',
+      email: 'validation.user@example.com',
+    });
+
+    const response = await request(app)
+      .put(`/profiles/${createResponse.body.profileId}`)
+      .send({ profileId: 999 });
+
+    expect(response.status).toBe(400);
+  });
+
+  it('should return 400 when updating profile with invalid email', async () => {
+    const createResponse = await request(app).post('/profiles').send({
+      displayName: 'Email Update User',
+      email: 'email.update.user@example.com',
+    });
+
+    const response = await request(app)
+      .put(`/profiles/${createResponse.body.profileId}`)
+      .send({ email: 'not-an-email' });
+
+    expect(response.status).toBe(400);
+  });
 });

@@ -16,7 +16,7 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Profile'
+ *             $ref: '#/components/schemas/ProfileInput'
  *     responses:
  *       201:
  *         description: Profile created successfully
@@ -24,6 +24,8 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Profile'
+ *       400:
+ *         description: Invalid profile payload
  *
  * /api/profiles/{id}:
  *   get:
@@ -60,7 +62,7 @@
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/Profile'
+ *             $ref: '#/components/schemas/ProfileInput'
  *     responses:
  *       200:
  *         description: Profile updated successfully
@@ -68,6 +70,8 @@
  *           application/json:
  *             schema:
  *               $ref: '#/components/schemas/Profile'
+ *       400:
+ *         description: Invalid profile payload
  *       404:
  *         description: Profile not found
  *   delete:
@@ -88,16 +92,93 @@
  */
 
 import express from 'express';
-import { CreateProfile } from '../models/profile';
+import { CreateProfile, UpdateProfile } from '../models/profile';
 import { getProfilesRepository } from '../repositories/profilesRepo';
-import { NotFoundError } from '../utils/errors';
+import { NotFoundError, ValidationError } from '../utils/errors';
 
 const router = express.Router();
+
+function isValidEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function parseProfileId(idParam: string): number {
+  const id = Number.parseInt(idParam, 10);
+  if (!Number.isInteger(id) || id <= 0) {
+    throw new ValidationError('Profile ID must be a positive integer');
+  }
+  return id;
+}
+
+function validateCreateProfile(body: unknown): CreateProfile {
+  if (!body || typeof body !== 'object') {
+    throw new ValidationError('Request body is required');
+  }
+
+  const candidate = body as Partial<CreateProfile>;
+  if (!candidate.displayName || typeof candidate.displayName !== 'string') {
+    throw new ValidationError('displayName is required and must be a string');
+  }
+  if (!candidate.email || typeof candidate.email !== 'string') {
+    throw new ValidationError('email is required and must be a string');
+  }
+  if (!isValidEmail(candidate.email)) {
+    throw new ValidationError('email must be a valid email address');
+  }
+
+  return candidate as CreateProfile;
+}
+
+function validateUpdateProfile(body: unknown): UpdateProfile {
+  if (!body || typeof body !== 'object') {
+    throw new ValidationError('Request body is required');
+  }
+
+  const candidate = body as Record<string, unknown>;
+  const updateProfile: UpdateProfile = {};
+
+  if (candidate.displayName !== undefined) {
+    if (typeof candidate.displayName !== 'string' || candidate.displayName.length === 0) {
+      throw new ValidationError('displayName must be a non-empty string');
+    }
+    updateProfile.displayName = candidate.displayName;
+  }
+
+  if (candidate.email !== undefined) {
+    if (typeof candidate.email !== 'string' || candidate.email.length === 0) {
+      throw new ValidationError('email must be a non-empty string');
+    }
+    if (!isValidEmail(candidate.email)) {
+      throw new ValidationError('email must be a valid email address');
+    }
+    updateProfile.email = candidate.email;
+  }
+
+  if (candidate.bio !== undefined) {
+    if (typeof candidate.bio !== 'string') {
+      throw new ValidationError('bio must be a string');
+    }
+    updateProfile.bio = candidate.bio;
+  }
+
+  if (candidate.avatarUrl !== undefined) {
+    if (typeof candidate.avatarUrl !== 'string') {
+      throw new ValidationError('avatarUrl must be a string');
+    }
+    updateProfile.avatarUrl = candidate.avatarUrl;
+  }
+
+  if (Object.keys(updateProfile).length === 0) {
+    throw new ValidationError('At least one updatable field is required');
+  }
+
+  return updateProfile;
+}
 
 router.post('/', async (req, res, next) => {
   try {
     const repo = await getProfilesRepository();
-    const newProfile = await repo.create(req.body as CreateProfile);
+    const newProfile = await repo.create(validateCreateProfile(req.body));
     res.status(201).json(newProfile);
   } catch (error) {
     next(error);
@@ -107,11 +188,12 @@ router.post('/', async (req, res, next) => {
 router.get('/:id', async (req, res, next) => {
   try {
     const repo = await getProfilesRepository();
-    const profile = await repo.findById(parseInt(req.params.id, 10));
+    const id = parseProfileId(req.params.id);
+    const profile = await repo.findById(id);
     if (profile) {
       res.json(profile);
     } else {
-      res.status(404).send('Profile not found');
+      throw new NotFoundError('Profile', id);
     }
   } catch (error) {
     next(error);
@@ -121,28 +203,20 @@ router.get('/:id', async (req, res, next) => {
 router.put('/:id', async (req, res, next) => {
   try {
     const repo = await getProfilesRepository();
-    const updatedProfile = await repo.update(parseInt(req.params.id, 10), req.body);
+    const updatedProfile = await repo.update(parseProfileId(req.params.id), validateUpdateProfile(req.body));
     res.json(updatedProfile);
   } catch (error) {
-    if (error instanceof NotFoundError) {
-      res.status(404).send('Profile not found');
-    } else {
-      next(error);
-    }
+    next(error);
   }
 });
 
 router.delete('/:id', async (req, res, next) => {
   try {
     const repo = await getProfilesRepository();
-    await repo.delete(parseInt(req.params.id, 10));
+    await repo.delete(parseProfileId(req.params.id));
     res.status(204).send();
   } catch (error) {
-    if (error instanceof NotFoundError) {
-      res.status(404).send('Profile not found');
-    } else {
-      next(error);
-    }
+    next(error);
   }
 });
 

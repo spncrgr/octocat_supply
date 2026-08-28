@@ -1,5 +1,5 @@
 import { getDatabase, DatabaseConnection } from '../db/sqlite';
-import { Profile, CreateProfile } from '../models/profile';
+import { Profile, CreateProfile, UpdateProfile } from '../models/profile';
 import { handleDatabaseError, NotFoundError } from '../utils/errors';
 import { buildInsertSQL, buildUpdateSQL, objectToCamelCase, mapDatabaseRows, DatabaseRow } from '../utils/sql';
 
@@ -42,7 +42,7 @@ export class ProfilesRepository {
     }
   }
 
-  async update(id: number, profile: Partial<Omit<Profile, 'profileId'>>): Promise<Profile> {
+  async update(id: number, profile: UpdateProfile): Promise<Profile> {
     try {
       const updatedValues = {
         ...profile,

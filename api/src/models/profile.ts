@@ -33,6 +33,25 @@
  *           type: string
  *           format: date-time
  *           description: Profile last update timestamp
+ *     ProfileInput:
+ *       type: object
+ *       required:
+ *         - displayName
+ *         - email
+ *       properties:
+ *         displayName:
+ *           type: string
+ *           description: The display name for the profile
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: The profile email address
+ *         bio:
+ *           type: string
+ *           description: The profile biography
+ *         avatarUrl:
+ *           type: string
+ *           description: The avatar image URL
  */
 export interface Profile {
   profileId: number;
@@ -45,3 +64,4 @@ export interface Profile {
 }
 
 export type CreateProfile = Omit<Profile, 'profileId' | 'createdAt' | 'updatedAt'>;
+export type UpdateProfile = Partial<CreateProfile>;
