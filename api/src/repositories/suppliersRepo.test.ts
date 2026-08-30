@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { SuppliersRepository } from './suppliersRepo';
-import { NotFoundError } from '../utils/errors';
+import { ConflictError, DatabaseError, NotFoundError } from '../utils/errors';
 
 // Mock the getDatabase function first
 vi.mock('../db/sqlite', () => ({
@@ -83,6 +83,13 @@ describe('SuppliersRepository', () => {
 
             expect(result).toBeNull();
         });
+
+        it('should throw DatabaseError when the database connection fails during lookup', async () => {
+            mockDb.get.mockRejectedValue(new Error('connection lost'));
+
+            await expect(repository.findById(1)).rejects.toThrow(DatabaseError);
+            await expect(repository.findById(1)).rejects.toThrow('Database operation failed: connection lost');
+        });
     });
 
     describe('create', () => {
@@ -105,18 +112,37 @@ describe('SuppliersRepository', () => {
                 contact_person: 'Jane Doe',
                 email: 'jane@test.com',
                 phone: '555-5678',
-                active: true,
-                verified: false
+                active: 1,
+                verified: 0
             });
 
             const result = await repository.create(newSupplier);
 
             expect(mockDb.run).toHaveBeenCalledWith(
                 'INSERT INTO suppliers (name, description, contact_person, email, phone, active, verified) VALUES (?, ?, ?, ?, ?, ?, ?)',
-                ['New Supplier', 'New Description', 'Jane Doe', 'jane@test.com', '555-5678', true, false]
+                ['New Supplier', 'New Description', 'Jane Doe', 'jane@test.com', '555-5678', 1, 0]
             );
             expect(result.supplierId).toBe(2);
             expect(result.name).toBe('New Supplier');
+        });
+
+        it('should throw ConflictError when a database unique constraint is violated', async () => {
+            const newSupplier = {
+                name: 'Duplicate Supplier',
+                description: 'Duplicate',
+                contactPerson: 'Jane Doe',
+                email: 'duplicate@test.com',
+                phone: '555-0000',
+                active: true,
+                verified: false
+            };
+
+            const constraintError = new DatabaseError('UNIQUE constraint failed: suppliers.email', 'SQLITE_CONSTRAINT', 500);
+            constraintError.message = 'UNIQUE constraint failed: suppliers.email';
+            mockDb.run.mockRejectedValue(constraintError);
+
+            await expect(repository.create(newSupplier)).rejects.toThrow(ConflictError);
+            await expect(repository.create(newSupplier)).rejects.toThrow('Conflict: Resource already exists');
         });
     });
 
@@ -151,6 +177,20 @@ describe('SuppliersRepository', () => {
             await expect(repository.update(999, { name: 'Updated' }))
                 .rejects.toThrow(NotFoundError);
         });
+
+        it('should throw NotFoundError when an invalid ID is used for update', async () => {
+            mockDb.run.mockResolvedValue({ changes: 0 });
+
+            await expect(repository.update(0, { name: 'Updated' }))
+                .rejects.toThrow(NotFoundError);
+        });
+
+        it('should throw DatabaseError when the database connection fails during update', async () => {
+            mockDb.run.mockRejectedValue(new Error('database unavailable'));
+
+            await expect(repository.update(1, { name: 'Updated' })).rejects.toThrow(DatabaseError);
+            await expect(repository.update(1, { name: 'Updated' })).rejects.toThrow('Database operation failed: database unavailable');
+        });
     });
 
     describe('delete', () => {
@@ -167,6 +207,19 @@ describe('SuppliersRepository', () => {
 
             await expect(repository.delete(999))
                 .rejects.toThrow(NotFoundError);
+        });
+
+        it('should throw NotFoundError when an invalid ID is used for delete', async () => {
+            mockDb.run.mockResolvedValue({ changes: 0 });
+
+            await expect(repository.delete(-1)).rejects.toThrow(NotFoundError);
+        });
+
+        it('should throw DatabaseError when the database connection fails during delete', async () => {
+            mockDb.run.mockRejectedValue(new Error('delete failed'));
+
+            await expect(repository.delete(1)).rejects.toThrow(DatabaseError);
+            await expect(repository.delete(1)).rejects.toThrow('Database operation failed: delete failed');
         });
     });
 
