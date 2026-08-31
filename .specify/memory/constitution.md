@@ -1,12 +1,3 @@
-<!--
-Sync Impact Report
-- Version change: 0.0.0 → 1.0.0
-- Modified principles: initial constitution adoption; five principle sections defined
-- Added sections: Technology Standards; Development Workflow
-- Removed sections: none
-- Follow-up TODOs: none
--->
-
 # OctoCAT Supply Chain Constitution
 
 ## Core Principles

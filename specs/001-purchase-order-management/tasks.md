@@ -128,11 +128,11 @@
 
 **Purpose**: Finalize documentation, contract parity, and regression confidence across all stories.
 
-- [ ] T045 [P] Update API Swagger aggregate contract with purchase-order schemas in api/api-swagger.json
+- [x] T045 [P] Update API Swagger aggregate contract with purchase-order schemas in api/api-swagger.json
 - [X] T046 [P] Add route-level API docs/comments for purchase-order endpoints in api/src/routes/purchaseOrder.ts
 - [X] T047 [P] Add quickstart execution notes and observed outputs in specs/001-purchase-order-management/quickstart.md
 - [X] T048 Run API regression tests and address failures in api/src/routes/purchaseOrder.test.ts
-- [ ] T049 Run frontend E2E regression tests and address failures in frontend/tests/e2e/purchase-order-approval.spec.ts
+- [x] T049 Run frontend E2E regression tests and address failures in frontend/tests/e2e/purchase-order-approval.spec.ts
 - [X] T050 Validate no contract drift between implementation and spec in specs/001-purchase-order-management/contracts/purchase-orders.openapi.yaml
 
 ---
