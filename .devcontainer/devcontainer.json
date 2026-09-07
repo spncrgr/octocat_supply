@@ -15,7 +15,8 @@
     },
     "5137": {
       "label": "Frontend",
-      "onAutoForward": "notify"
+      "onAutoForward": "notify",
+      "visibility": "public"
     }
   },
   "features": {
@@ -59,8 +60,6 @@
     }
   },
   "postCreateCommand": "make install && make build",
-  // set the API port to public visibility
-  "postAttachCommand": "gh cs ports visibility 3000:public 5137:public -c \"$CODESPACE_NAME\"",
   "shutdownAction": "stopCompose",
   "hostRequirements": {
     "cpus": 4,
