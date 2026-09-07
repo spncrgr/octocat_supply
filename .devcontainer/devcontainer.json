@@ -65,6 +65,5 @@
   "hostRequirements": {
     "cpus": 4,
     "memory": "8gb"
-  },
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}"
+  }
 }
