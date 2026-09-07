@@ -71,6 +71,25 @@ describe('Purchase Order API', () => {
     expect(updateResponse.body.preTaxTotal).toBe(1200);
   });
 
+  it('lists and retrieves purchase orders by ID', async () => {
+    const created = await request(app).post('/purchase-orders').send({
+      branchId: 1,
+      supplierId: 1,
+      createdByUserId: 'buyer-list',
+      lineItems: [{ productId: 1, quantity: 2, expectedUnitPrice: 500 }],
+    });
+
+    const listResponse = await request(app).get('/purchase-orders');
+    const byIdResponse = await request(app).get(`/purchase-orders/${created.body.purchaseOrderId}`);
+
+    expect(listResponse.status).toBe(200);
+    expect(Array.isArray(listResponse.body)).toBe(true);
+    expect(listResponse.body.some((po: { purchaseOrderId: number }) => po.purchaseOrderId === created.body.purchaseOrderId)).toBe(true);
+    expect(byIdResponse.status).toBe(200);
+    expect(byIdResponse.body.purchaseOrderId).toBe(created.body.purchaseOrderId);
+    expect(byIdResponse.body.lineItems).toHaveLength(1);
+  });
+
   it('submits a draft and creates notification records', async () => {
     const createResponse = await request(app).post('/purchase-orders').send({
       branchId: 1,
@@ -93,6 +112,24 @@ describe('Purchase Order API', () => {
     expect(notificationsResponse.status).toBe(200);
     expect(Array.isArray(notificationsResponse.body)).toBe(true);
     expect(notificationsResponse.body.length).toBeGreaterThan(0);
+  });
+
+  it('rejects fulfillment before approval for high-value purchase orders', async () => {
+    const createResponse = await request(app).post('/purchase-orders').send({
+      branchId: 1,
+      supplierId: 1,
+      createdByUserId: 'buyer-fulfill',
+      lineItems: [{ productId: 1, quantity: 21, expectedUnitPrice: 500 }],
+    });
+
+    await request(app).post(`/purchase-orders/${createResponse.body.purchaseOrderId}/submit`);
+
+    const fulfillResponse = await request(app)
+      .patch(`/purchase-orders/${createResponse.body.purchaseOrderId}/status`)
+      .send({ targetStatus: 'Fulfilled' });
+
+    expect(fulfillResponse.status).toBe(409);
+    expect(fulfillResponse.body.message).toContain('require approval');
   });
 
   it('enforces high-value approval and prevents self-approval', async () => {

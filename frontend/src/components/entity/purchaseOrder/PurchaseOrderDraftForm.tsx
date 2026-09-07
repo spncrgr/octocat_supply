@@ -87,33 +87,45 @@ export default function PurchaseOrderDraftForm({ onCreateDraft }: PurchaseOrderD
       <div className="mt-4 space-y-2">
         {lineItems.map((lineItem, index) => (
           <div key={`line-${index}`} className="grid gap-2 md:grid-cols-4">
-            <input
-              type="number"
-              min={1}
-              className="rounded border border-gray-300 px-2 py-1"
-              value={lineItem.productId}
-              onChange={(e) => updateLineItem(index, 'productId', Number(e.target.value))}
-              aria-label={`Line item ${index + 1} product id`}
-            />
-            <input
-              type="number"
-              min={1}
-              className="rounded border border-gray-300 px-2 py-1"
-              value={lineItem.quantity}
-              onChange={(e) => updateLineItem(index, 'quantity', Number(e.target.value))}
-              aria-label={`Line item ${index + 1} quantity`}
-            />
-            <input
-              type="number"
-              min={0.01}
-              step="0.01"
-              className="rounded border border-gray-300 px-2 py-1"
-              value={lineItem.expectedUnitPrice}
-              onChange={(e) =>
-                updateLineItem(index, 'expectedUnitPrice', Number(e.target.value))
-              }
-              aria-label={`Line item ${index + 1} expected price`}
-            />
+            <label className="text-sm text-gray-700" htmlFor={`line-${index}-product-id`}>
+              Product ID
+              <input
+                id={`line-${index}-product-id`}
+                type="number"
+                min={1}
+                className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+                value={lineItem.productId}
+                onChange={(e) => updateLineItem(index, 'productId', Number(e.target.value))}
+                aria-label={`Line item ${index + 1} product id`}
+              />
+            </label>
+            <label className="text-sm text-gray-700" htmlFor={`line-${index}-quantity`}>
+              Quantity
+              <input
+                id={`line-${index}-quantity`}
+                type="number"
+                min={1}
+                className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+                value={lineItem.quantity}
+                onChange={(e) => updateLineItem(index, 'quantity', Number(e.target.value))}
+                aria-label={`Line item ${index + 1} quantity`}
+              />
+            </label>
+            <label className="text-sm text-gray-700" htmlFor={`line-${index}-expected-price`}>
+              Expected Unit Price
+              <input
+                id={`line-${index}-expected-price`}
+                type="number"
+                min={0.01}
+                step="0.01"
+                className="mt-1 w-full rounded border border-gray-300 px-2 py-1"
+                value={lineItem.expectedUnitPrice}
+                onChange={(e) =>
+                  updateLineItem(index, 'expectedUnitPrice', Number(e.target.value))
+                }
+                aria-label={`Line item ${index + 1} expected price`}
+              />
+            </label>
             <button
               type="button"
               onClick={() =>
