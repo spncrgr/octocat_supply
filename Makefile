@@ -177,14 +177,14 @@ build-frontend: ## Build only the frontend
 test: ## Run all tests
 	@echo "Running tests ($(BACKEND))..."
 ifeq ($(BACKEND),nodejs)
-	cd $(API_DIR) && npm run test
-	cd $(FRONTEND_DIR) && npm run test
+	cd $(API_DIR) && npm run test -- --run
+	cd $(FRONTEND_DIR) && npm run test -- --run
 else ifeq ($(BACKEND),python)
 	cd $(API_DIR) && $(MAKE) test
-	cd $(FRONTEND_DIR) && npm run test
+	cd $(FRONTEND_DIR) && npm run test -- --run
 else ifeq ($(BACKEND),java)
 	cd $(API_DIR) && $(MAKE) test
-	cd $(FRONTEND_DIR) && npm run test
+	cd $(FRONTEND_DIR) && npm run test -- --run
 else
 	@echo "Error: Unknown backend '$(BACKEND)'"
 	@exit 1
@@ -194,7 +194,7 @@ endif
 test-api: ## Run API tests
 	@echo "Running API tests ($(BACKEND))..."
 ifeq ($(BACKEND),nodejs)
-	cd $(API_DIR) && npm run test
+	cd $(API_DIR) && npm run test -- --run
 else ifeq ($(BACKEND),python)
 	cd $(API_DIR) && $(MAKE) test
 else ifeq ($(BACKEND),java)
@@ -207,7 +207,7 @@ endif
 .PHONY: test-frontend
 test-frontend: ## Run frontend tests
 	@echo "Running frontend tests..."
-	cd $(FRONTEND_DIR) && npm run test
+	cd $(FRONTEND_DIR) && npm run test -- --run
 
 .PHONY: test-e2e
 test-e2e: ## Run end-to-end tests

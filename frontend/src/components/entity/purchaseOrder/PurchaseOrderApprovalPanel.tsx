@@ -38,6 +38,28 @@ export default function PurchaseOrderApprovalPanel({
     }
   };
 
+  if (purchaseOrder.status === 'Approved' || purchaseOrder.status === 'Fulfilled') {
+    return (
+      <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-4">
+        <h3 className="text-sm font-semibold text-emerald-900">High-Value Approval</h3>
+        <p className="mt-1 text-xs text-emerald-800">
+          Approval complete. Current status: {purchaseOrder.status}.
+        </p>
+      </div>
+    );
+  }
+
+  if (purchaseOrder.status !== 'Submitted') {
+    return (
+      <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
+        <h3 className="text-sm font-semibold text-amber-900">High-Value Approval</h3>
+        <p className="mt-1 text-xs text-amber-800">
+          Approval decisions are available after this order is submitted.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="rounded-lg border border-amber-300 bg-amber-50 p-4">
       <h3 className="text-sm font-semibold text-amber-900">High-Value Approval</h3>

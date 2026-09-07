@@ -87,4 +87,41 @@ describe('PurchaseOrderService approval policy', () => {
 
     expect(result.decision).toBe('Approved');
   });
+
+  it('rejects approval when the user is not an approver', async () => {
+    await expect(
+      service.recordApprovalDecision(1, {
+        approverUserId: 'manager-1',
+        decision: 'Approved',
+        isApproverRole: false,
+      }),
+    ).rejects.toThrow('Only branch managers or designated approvers can approve');
+  });
+
+  it('blocks fulfillment until approval has been granted', async () => {
+    const purchaseOrdersRepo = {
+      findById: vi.fn(async () => ({
+        purchaseOrderId: 1,
+        branchId: 1,
+        supplierId: 1,
+        status: 'Submitted',
+        approvalNeeded: true,
+        preTaxTotal: 15000,
+        createdByUserId: 'buyer-1',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        lineItems: [{ productId: 1, quantity: 30, expectedUnitPrice: 500 }],
+      })),
+      transitionStatus: vi.fn(),
+    } as unknown as PurchaseOrdersRepository;
+
+    const localService = new PurchaseOrderService(
+      purchaseOrdersRepo,
+      { createDecision: vi.fn(), findByPurchaseOrderId: vi.fn() } as unknown as PurchaseOrderApprovalsRepository,
+      { createPending: vi.fn(), findByPurchaseOrderId: vi.fn(), updateState: vi.fn() } as unknown as PurchaseOrderNotificationsRepository,
+      { dispatchPurchaseOrderSubmitted: vi.fn() } as unknown as NotificationService,
+    );
+
+    await expect(localService.transitionStatus(1, 'Fulfilled')).rejects.toThrow('require approval before fulfillment');
+  });
 });
