@@ -3,7 +3,7 @@ version: "3.8"
 
 services:
   dev:
-    image: mcr.microsoft.com/devcontainers/base:resolute
+    image: mcr.microsoft.com/devcontainers/base:debian
     command: sleep infinity
 
     ports:
