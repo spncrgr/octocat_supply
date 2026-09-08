@@ -45,7 +45,9 @@ function PurchaseOrdersPageInner() {
   };
 
   const handleSubmit = async (purchaseOrderId: number) => {
-    await submitDraft(purchaseOrderId);
+    const submitted = await submitDraft(purchaseOrderId);
+    setSelectedPurchaseOrderId(submitted.purchaseOrderId);
+    await refresh();
     const notifications = await getNotifications(purchaseOrderId);
     setNotificationMap((prev) => ({ ...prev, [purchaseOrderId]: notifications }));
   };
