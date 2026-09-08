@@ -8,12 +8,14 @@ import {
 } from '../models/purchaseOrderLineItem';
 import { ApprovalDecision, ApprovalDecisionType } from '../models/approvalDecision';
 import { SupplierNotification } from '../models/supplierNotification';
+import { PurchaseOrderFulfillmentInput } from '../models/purchaseOrderFulfillment';
 import {
   PurchaseOrdersRepository,
   PurchaseOrderWithItems,
 } from '../repositories/purchaseOrdersRepo';
 import { PurchaseOrderApprovalsRepository } from '../repositories/purchaseOrderApprovalsRepo';
 import { PurchaseOrderNotificationsRepository } from '../repositories/purchaseOrderNotificationsRepo';
+import { PurchaseOrderFulfillmentsRepository } from '../repositories/purchaseOrderFulfillmentsRepo';
 import {
   validateLineItems,
   calculatePreTaxTotal,
@@ -45,6 +47,7 @@ export class PurchaseOrderService {
   private purchaseOrdersRepo: PurchaseOrdersRepository;
   private approvalsRepo: PurchaseOrderApprovalsRepository;
   private notificationsRepo: PurchaseOrderNotificationsRepository;
+  private fulfillmentsRepo: PurchaseOrderFulfillmentsRepository;
   private notificationService: NotificationService;
 
   constructor(
@@ -52,11 +55,13 @@ export class PurchaseOrderService {
     approvalsRepo: PurchaseOrderApprovalsRepository,
     notificationsRepo: PurchaseOrderNotificationsRepository,
     notificationService: NotificationService,
+    fulfillmentsRepo?: PurchaseOrderFulfillmentsRepository,
   ) {
     this.purchaseOrdersRepo = purchaseOrdersRepo;
     this.approvalsRepo = approvalsRepo;
     this.notificationsRepo = notificationsRepo;
     this.notificationService = notificationService;
+    this.fulfillmentsRepo = fulfillmentsRepo ?? {} as PurchaseOrderFulfillmentsRepository;
   }
 
   async listPurchaseOrders(filters?: {
@@ -156,13 +161,49 @@ export class PurchaseOrderService {
     return decision;
   }
 
-  async transitionStatus(id: number, targetStatus: PurchaseOrderStatus): Promise<PurchaseOrderWithItems> {
+  async transitionStatus(
+    id: number,
+    targetStatus: PurchaseOrderStatus,
+    fulfillmentRecords: PurchaseOrderFulfillmentInput[] = [],
+  ): Promise<PurchaseOrderWithItems> {
     const order = await this.getPurchaseOrderById(id);
 
     validateTransition(order.status, targetStatus);
 
-    if (targetStatus === 'Fulfilled' && order.approvalNeeded && order.status !== 'Approved') {
+    if (
+      (targetStatus === 'Fulfilled' || targetStatus === 'Partially Fulfilled')
+      && order.approvalNeeded
+      && order.status !== 'Approved'
+    ) {
       throw new ConflictError('High-value purchase orders require approval before fulfillment');
+    }
+
+    if (fulfillmentRecords.length > 0) {
+      for (const rawRecord of fulfillmentRecords) {
+        const record = {
+          ...rawRecord,
+          purchaseOrderLineItemId:
+            rawRecord.purchaseOrderLineItemId ?? rawRecord.lineItemId,
+        };
+
+        if (!Number.isInteger(record.purchaseOrderLineItemId) || record.purchaseOrderLineItemId <= 0) {
+          throw new ValidationError('Fulfillment line item ID must be a positive integer');
+        }
+
+        const lineItem = order.lineItems.find(
+          (item) => item.purchaseOrderLineItemId === record.purchaseOrderLineItemId,
+        );
+
+        if (!lineItem) {
+          throw new ValidationError(`Fulfillment references unknown line item ${record.purchaseOrderLineItemId}`);
+        }
+
+        if (!Number.isInteger(record.quantity) || record.quantity <= 0) {
+          throw new ValidationError('Fulfillment quantity must be a positive integer');
+        }
+
+        await this.fulfillmentsRepo.addFulfillment(id, record);
+      }
     }
 
     const now = new Date().toISOString();
@@ -173,7 +214,7 @@ export class PurchaseOrderService {
       cancelledAt: string;
     }> = {};
 
-    if (targetStatus === 'Fulfilled') {
+    if (targetStatus === 'Fulfilled' || targetStatus === 'Partially Fulfilled') {
       fields.fulfilledAt = now;
     }
 
@@ -187,5 +228,10 @@ export class PurchaseOrderService {
   async listNotifications(id: number): Promise<SupplierNotification[]> {
     await this.getPurchaseOrderById(id);
     return this.notificationsRepo.findByPurchaseOrderId(id);
+  }
+
+  async listFulfillmentHistory(id: number) {
+    await this.getPurchaseOrderById(id);
+    return this.fulfillmentsRepo.listByPurchaseOrderId(id);
   }
 }

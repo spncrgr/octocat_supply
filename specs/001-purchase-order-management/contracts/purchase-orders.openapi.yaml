@@ -167,6 +167,22 @@ paths:
                 items:
                   $ref: '#/components/schemas/SupplierNotification'
 
+  /purchase-orders/{purchaseOrderId}/fulfillment-history:
+    get:
+      summary: List fulfillment events for a purchase order
+      operationId: listPurchaseOrderFulfillmentHistory
+      parameters:
+        - $ref: '#/components/parameters/PurchaseOrderId'
+      responses:
+        '200':
+          description: Fulfillment events for all line items on the purchase order
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/FulfillmentRecord'
+
 components:
   parameters:
     PurchaseOrderId:
@@ -183,6 +199,7 @@ components:
         - Draft
         - Submitted
         - Approved
+        - Partially Fulfilled
         - Fulfilled
         - Cancelled
 
@@ -416,3 +433,31 @@ components:
           nullable: true
         alertRaised:
           type: boolean
+
+    FulfillmentRecord:
+      type: object
+      required:
+        - id
+        - purchaseOrderId
+        - purchaseOrderLineItemId
+        - quantity
+        - fulfilledAt
+      properties:
+        id:
+          type: string
+        purchaseOrderId:
+          type: string
+        purchaseOrderLineItemId:
+          type: string
+        quantity:
+          type: integer
+          minimum: 1
+        reference:
+          type: string
+          nullable: true
+        fulfilledAt:
+          type: string
+          format: date-time
+        remarks:
+          type: string
+          nullable: true

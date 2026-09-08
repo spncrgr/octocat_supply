@@ -21,7 +21,7 @@
  *           type: integer
  *         status:
  *           type: string
- *           enum: [Draft, Submitted, Approved, Fulfilled, Cancelled]
+ *           enum: [Draft, Submitted, Approved, Partially Fulfilled, Fulfilled, Cancelled]
  *         approvalNeeded:
  *           type: boolean
  *         preTaxTotal:
@@ -48,7 +48,13 @@
  *           format: date-time
  */
 
-export type PurchaseOrderStatus = 'Draft' | 'Submitted' | 'Approved' | 'Fulfilled' | 'Cancelled';
+export type PurchaseOrderStatus =
+  | 'Draft'
+  | 'Submitted'
+  | 'Approved'
+  | 'Partially Fulfilled'
+  | 'Fulfilled'
+  | 'Cancelled';
 
 export interface PurchaseOrder {
   purchaseOrderId: number;

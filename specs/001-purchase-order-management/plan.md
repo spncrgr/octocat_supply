@@ -6,7 +6,7 @@
 
 ## Summary
 
-Implement end-to-end purchase order management for branch buyers and approvers, including draft authoring, submission, supplier notification, high-value approval routing over $10,000 (pre-tax), fulfillment gating, cancellation rules, and status visibility. The implementation will follow existing repository and route patterns, introduce a dedicated service layer for approval and notification orchestration, and keep contracts synchronized through OpenAPI.
+Implement end-to-end purchase order management for branch buyers and approvers, including draft authoring, submission, supplier notification, high-value approval routing over $10,000 (pre-tax), partial fulfillment tracking, fulfillment-history auditing, fulfillment gating, cancellation rules, and status visibility. The implementation will follow existing repository and route patterns, introduce a dedicated service layer for approval, notification, and fulfillment-state orchestration, and keep contracts synchronized through OpenAPI.
 
 ## Technical Context
 
@@ -28,8 +28,9 @@ Implement end-to-end purchase order management for branch buyers and approvers, 
 - Maintain deterministic approval gating so 100% of >$10,000 pre-tax orders require approval before fulfillment.
 
 **Constraints**:
-- Preserve existing status vocabulary: Draft, Submitted, Approved, Fulfilled, Cancelled.
+- Preserve existing status vocabulary: Draft, Submitted, Approved, Partially Fulfilled, Fulfilled, Cancelled.
 - Represent waiting approval via an approval-needed indicator while status remains Submitted.
+- Allow line items to be fulfilled in multiple shipments while the PO remains in Partially Fulfilled until all line items are complete.
 - Enforce no self-approval for high-value orders.
 - Keep implementation consistent with repository pattern and current REST naming conventions.
 
@@ -41,11 +42,11 @@ Implement end-to-end purchase order management for branch buyers and approvers, 
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-- **I. Library-First Architecture**: PASS. Plan introduces reusable purchase-order service modules (pricing totals, approval policy, notification policy) and repository methods with clear interfaces.
+- **I. Library-First Architecture**: PASS. Plan introduces reusable purchase-order service modules (pricing totals, approval policy, notification policy, and fulfillment-state logic) and repository methods with clear interfaces.
 - **II. Test-Driven Development**: PASS. Plan requires writing/expanding failing route and repository tests before implementation updates.
-- **III. Integration Testing Over Mocks**: PASS. API behavior and persistence will be validated against SQLite-backed tests; only notification transport boundary uses stub behavior.
+- **III. Integration Testing Over Mocks**: PASS. API behavior and persistence will be validated against SQLite-backed tests; only notification and outbound fulfillment transport boundaries use stub behavior.
 - **IV. Simplicity Over Abstraction**: PASS. Service layer is minimal and focused on business orchestration; no extra framework or speculative abstraction is introduced.
-- **V. REST API Design and Type Safety**: PASS. Contracts are defined in OpenAPI and aligned to TypeScript models/DTOs across API and frontend.
+- **V. REST API Design and Type Safety**: PASS. Contracts are defined in OpenAPI and aligned to TypeScript models/DTOs across API and frontend, including partial fulfillment and fulfillment-history exposure.
 
 Post-Phase-1 Re-check: PASS. Research, data model, contracts, and quickstart remain compliant with all constitution principles.
 

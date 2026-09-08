@@ -129,7 +129,7 @@ describe('Purchase Order API', () => {
       .send({ targetStatus: 'Fulfilled' });
 
     expect(fulfillResponse.status).toBe(409);
-    expect(fulfillResponse.body.message).toContain('require approval');
+    expect(fulfillResponse.body.error.message).toContain('require approval');
   });
 
   it('enforces high-value approval and prevents self-approval', async () => {
@@ -168,5 +168,43 @@ describe('Purchase Order API', () => {
 
     expect(fulfillResponse.status).toBe(200);
     expect(fulfillResponse.body.status).toBe('Fulfilled');
+  });
+
+  it('records partial fulfillment and exposes fulfillment history', async () => {
+    const createResponse = await request(app).post('/purchase-orders').send({
+      branchId: 1,
+      supplierId: 1,
+      createdByUserId: 'buyer-partial',
+      lineItems: [
+        { productId: 1, quantity: 2, expectedUnitPrice: 500 },
+        { productId: 1, quantity: 3, expectedUnitPrice: 400 },
+      ],
+    });
+
+    await request(app).post(`/purchase-orders/${createResponse.body.purchaseOrderId}/submit`);
+
+    const partialFulfillmentResponse = await request(app)
+      .patch(`/purchase-orders/${createResponse.body.purchaseOrderId}/status`)
+      .send({
+        targetStatus: 'Partially Fulfilled',
+        fulfillmentRecords: [{
+          lineItemId: createResponse.body.lineItems[0].purchaseOrderLineItemId,
+          quantity: 1,
+          reference: 'ASN-1001',
+          remarks: 'Initial shipment',
+        }],
+      });
+
+    expect(partialFulfillmentResponse.status).toBe(200);
+    expect(partialFulfillmentResponse.body.status).toBe('Partially Fulfilled');
+
+    const historyResponse = await request(app)
+      .get(`/purchase-orders/${createResponse.body.purchaseOrderId}/fulfillment-history`);
+
+    expect(historyResponse.status).toBe(200);
+    expect(Array.isArray(historyResponse.body)).toBe(true);
+    expect(historyResponse.body.length).toBeGreaterThan(0);
+    expect(historyResponse.body[0].quantity).toBe(1);
+    expect(historyResponse.body[0].reference).toBe('ASN-1001');
   });
 });

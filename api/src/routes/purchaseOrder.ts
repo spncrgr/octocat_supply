@@ -75,13 +75,16 @@ import { getPurchaseOrderNotificationsRepository } from '../repositories/purchas
 import { NotificationService } from '../services/notificationService';
 import { PurchaseOrderService } from '../services/purchaseOrderService';
 import { PurchaseOrderStatus } from '../models/purchaseOrder';
+import { getPurchaseOrderFulfillmentsRepository } from '../repositories/purchaseOrderFulfillmentsRepo';
 
 const router = express.Router();
 
 async function getPurchaseOrderService(): Promise<PurchaseOrderService> {
-  const purchaseOrdersRepo = await getPurchaseOrdersRepository();
-  const approvalsRepo = await getPurchaseOrderApprovalsRepository();
-  const notificationsRepo = await getPurchaseOrderNotificationsRepository();
+  const isTest = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
+  const purchaseOrdersRepo = await getPurchaseOrdersRepository(isTest);
+  const approvalsRepo = await getPurchaseOrderApprovalsRepository(isTest);
+  const notificationsRepo = await getPurchaseOrderNotificationsRepository(isTest);
+  const fulfillmentRepo = await getPurchaseOrderFulfillmentsRepository(isTest);
   const notificationService = new NotificationService(notificationsRepo);
 
   return new PurchaseOrderService(
@@ -89,6 +92,7 @@ async function getPurchaseOrderService(): Promise<PurchaseOrderService> {
     approvalsRepo,
     notificationsRepo,
     notificationService,
+    fulfillmentRepo,
   );
 }
 
@@ -183,8 +187,19 @@ router.patch('/:id/status', async (req, res, next) => {
     const purchaseOrder = await service.transitionStatus(
       parseId(req.params.id),
       req.body.targetStatus as PurchaseOrderStatus,
+      Array.isArray(req.body.fulfillmentRecords) ? req.body.fulfillmentRecords : [],
     );
     res.json(purchaseOrder);
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/:id/fulfillment-history', async (req, res, next) => {
+  try {
+    const service = await getPurchaseOrderService();
+    const history = await service.listFulfillmentHistory(parseId(req.params.id));
+    res.json(history);
   } catch (error) {
     next(error);
   }

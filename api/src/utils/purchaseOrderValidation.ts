@@ -45,8 +45,9 @@ export function validateTransition(currentStatus: PurchaseOrderStatus, nextStatu
 
   const transitions: Record<PurchaseOrderStatus, PurchaseOrderStatus[]> = {
     Draft: ['Submitted', 'Cancelled'],
-    Submitted: ['Approved', 'Fulfilled', 'Cancelled'],
-    Approved: ['Fulfilled', 'Cancelled'],
+    Submitted: ['Approved', 'Partially Fulfilled', 'Fulfilled', 'Cancelled'],
+    Approved: ['Partially Fulfilled', 'Fulfilled', 'Cancelled'],
+    'Partially Fulfilled': ['Partially Fulfilled', 'Fulfilled', 'Cancelled'],
     Fulfilled: [],
     Cancelled: [],
   };

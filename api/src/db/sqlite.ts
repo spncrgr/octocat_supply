@@ -154,14 +154,23 @@ class SQLiteHelper {
 
 // Global database connection instance
 let dbConnection: DatabaseConnection | null = null;
+let dbConnectionIsTest = false;
 
 /**
  * Get the global database connection
  */
 export async function getDatabase(isTest: boolean = false): Promise<DatabaseConnection> {
-  if (!dbConnection) {
+  const effectiveIsTest = isTest || process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
+
+  if (!dbConnection || dbConnectionIsTest !== effectiveIsTest) {
+    if (dbConnection) {
+      await dbConnection.close();
+      dbConnection = null;
+    }
+
     const helper = SQLiteHelper.getInstance();
-    dbConnection = await helper.connect(isTest);
+    dbConnection = await helper.connect(effectiveIsTest);
+    dbConnectionIsTest = effectiveIsTest;
   }
   return dbConnection;
 }
@@ -173,6 +182,7 @@ export async function closeDatabase(): Promise<void> {
   if (dbConnection) {
     await dbConnection.close();
     dbConnection = null;
+    dbConnectionIsTest = false;
   }
 }
 

@@ -10,7 +10,7 @@ This data model defines entities and relationships needed for purchase-order aut
 | id | string | Yes | Unique PO identifier | Non-empty, immutable |
 | branchId | string | Yes | Branch creating the PO | Must reference existing branch |
 | supplierId | string | Yes | Supplier receiving the PO | Must reference existing supplier |
-| status | enum | Yes | Lifecycle status | One of: Draft, Submitted, Approved, Fulfilled, Cancelled |
+| status | enum | Yes | Lifecycle status | One of: Draft, Submitted, Approved, Partially Fulfilled, Fulfilled, Cancelled |
 | approvalNeeded | boolean | Yes | Whether PO exceeds approval threshold | Derived from pre-tax total > 10000 |
 | preTaxTotal | number | Yes | Sum of line-item pre-tax totals | >= 0, recalculated on line-item change |
 | createdByUserId | string | Yes | Buyer who created PO | Must reference authenticated user |
@@ -59,8 +59,23 @@ This data model defines entities and relationships needed for purchase-order aut
 | failureReason | string | No | Last failure reason | Required when state is Failed |
 | alertRaised | boolean | Yes | Whether ops alert fired on exhaustion | Default false |
 
+## Entity: FulfillmentRecord
+
+| Field | Type | Required | Description | Validation |
+|-------|------|----------|-------------|------------|
+| id | string | Yes | Unique fulfillment event identifier | Non-empty, immutable |
+| purchaseOrderId | string | Yes | Parent PO reference | Must reference existing PO |
+| purchaseOrderLineItemId | string | Yes | Line item fulfilled | Must reference existing line item |
+| quantity | integer | Yes | Quantity shipped or received in this event | > 0 |
+| reference | string | No | Shipment or delivery reference | Optional external tracking code |
+| fulfilledAt | datetime | Yes | Fulfillment timestamp | Immutable once created |
+| remarks | string | No | Receiving or delivery notes | Optional free-text |
+| createdAt | datetime | Yes | Record creation timestamp | Immutable |
+| updatedAt | datetime | Yes | Last change timestamp | Updated on mutation |
+
 ## Relationships
 - One PurchaseOrder has many PurchaseOrderLineItems.
+- One PurchaseOrder has many FulfillmentRecords across its line items.
 - One PurchaseOrder has zero or many ApprovalDecisions (latest active decision governs outcome).
 - One PurchaseOrder has one or many SupplierNotifications (initial send plus retries tracked in same record or append-only log per implementation choice).
 - PurchaseOrder references one Branch and one Supplier.
@@ -69,6 +84,8 @@ This data model defines entities and relationships needed for purchase-order aut
 - `preTaxTotal` = sum(`linePreTaxTotal`) across all active line items.
 - `approvalNeeded` is true only when `preTaxTotal > 10000`.
 - POs with `approvalNeeded = true` cannot transition to `Fulfilled` without an `Approved` decision.
+- Approval or fulfillment may proceed once there is evidence that all quantities are complete or partial shipments are recorded.
+- `Partially Fulfilled` is the aggregate state when one or more line items have fulfilled quantity and at least one line item still has remaining quantity.
 - Submission requires at least one valid line item.
 
 ## State Transitions
@@ -80,10 +97,15 @@ This data model defines entities and relationships needed for purchase-order aut
 | Draft | Submitted | Yes | At least one valid line item; totals computed |
 | Draft | Cancelled | Yes | Authorized user action |
 | Submitted | Approved | Yes | approvalNeeded = true and valid approver decision |
-| Submitted | Fulfilled | Yes | approvalNeeded = false OR already Approved |
+| Submitted | Partially Fulfilled | Yes | Partial shipment recorded for eligible line items |
+| Submitted | Fulfilled | Yes | approvalNeeded = false OR already Approved and all line items complete |
 | Submitted | Cancelled | Yes | Authorized user action |
+| Approved | Partially Fulfilled | Yes | Partial shipment recorded |
 | Approved | Fulfilled | Yes | Fulfillment workflow completed |
 | Approved | Cancelled | Yes | Authorized user action before fulfillment |
+| Partially Fulfilled | Partially Fulfilled | Yes | Additional shipment recorded for remaining open line items |
+| Partially Fulfilled | Fulfilled | Yes | Final remaining line item completed |
+| Partially Fulfilled | Cancelled | Yes | Authorized user action while open remainder exists |
 | Fulfilled | * | No | Terminal status |
 | Cancelled | * | No | Terminal status |
 

@@ -1,7 +1,7 @@
 # Specification Quality Checklist: Purchase Order Management
 
 **Purpose**: Validate specification completeness and quality before proceeding to planning
-**Created**: 2026-08-31
+**Created**: 2026-09-08
 **Feature**: [spec.md](../spec.md)
 
 ## Content Quality
@@ -31,5 +31,6 @@
 
 ## Notes
 
+- Updated to include partial fulfillment, line-item fulfillment history, and the fulfillment-history API contract required by the current scope.
 - Validation completed in one iteration. No blocking quality issues found.
 - Specification is ready for `/speckit-plan`.

@@ -93,6 +93,17 @@ Expected outcomes:
 - Cancel and fulfill transitions follow contract rules.
 - Terminal statuses (`Cancelled`, `Fulfilled`) reject invalid further transitions.
 
+### Scenario 7: Partial fulfillment and fulfillment-history review
+1. Create an Approved multi-line PO with at least two line items.
+2. Record a shipment that fulfills only one line item or a partial quantity of one line item.
+3. Review the PO status and request fulfillment history for the purchase order.
+4. Complete the remaining open line item and verify the PO status becomes `Fulfilled`.
+
+Expected outcomes:
+- The PO transitions to `Partially Fulfilled` after the first partial shipment.
+- A fulfillment-history record is returned for each shipment event at the line-item level.
+- The final completion event moves the PO from `Partially Fulfilled` to `Fulfilled` without losing earlier history.
+
 ## Suggested Test Commands
 API tests:
 

@@ -35,7 +35,12 @@
 - Rationale: Aligns with constitution requirements for REST clarity and type-safe integration across API/frontend.
 - Alternatives considered: Code-first routes with later docs update. Rejected due to risk of contract drift.
 
-## Decision 8: Test strategy prioritizes SQLite-backed integration verification
+## Decision 9: Partial fulfillment is represented as a true PO state, not as a special case in the UI only
+- Decision: Add `Partially Fulfilled` as an explicit purchase-order lifecycle state and treat it as the aggregate status when any line item is fulfilled and at least one remains open.
+- Rationale: This preserves a clear business state across workflows, reporting, and APIs while still allowing multiple delivery events per line item.
+- Alternatives considered: Keep status as `Approved` or `Fulfilled` and hide partial activity in the UI. Rejected because it loses operational visibility and violates the clarified requirement for fulfillment history and status semantics.
+
+## Decision 10: Test strategy prioritizes SQLite-backed integration verification
 - Decision: Use Vitest integration tests with real SQLite paths for repository and route behavior, and Playwright scenarios for approval and notification UX flows.
 - Rationale: Constitution requires integration-first confidence for data workflows.
 - Alternatives considered: Mostly mocked tests. Rejected because they would not validate persistence and state-transition integrity.
