@@ -2,6 +2,7 @@
   "dockerComposeFile": [
     "docker-compose.yml"
   ],
+  "workspaceFolder": "/home/sroach/source/octocat_supply",
   "service": "dev",
   "forwardPorts": [
     3000,
@@ -18,15 +19,6 @@
       "onAutoForward": "notify",
       "visibility": "public"
     }
-  },
-  "features": {
-    "ghcr.io/devcontainers/features/node:1": {
-      "version": "24"
-    },
-    "ghcr.io/devcontainers/features/azure-cli:1": {},
-    "ghcr.io/devcontainers/features/python:1": {},
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers/features/node:2": {}
   },
   "customizations": {
     "vscode": {
@@ -60,8 +52,6 @@
     }
   },
   "postCreateCommand": "make install && make build",
-  // set the API port to public visibility
-  "postAttachCommand": "gh cs ports visibility 3000:public 5137:public -c \"$CODESPACE_NAME\"",
   "shutdownAction": "stopCompose",
   "hostRequirements": {
     "cpus": 4,
